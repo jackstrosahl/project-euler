@@ -1,0 +1,1 @@
+print(sum(sum(ord(x)-64 for x in name)*i for i, name in enumerate(sorted(open("p022_names.txt").read().replace('"','').split(",")), 1)))

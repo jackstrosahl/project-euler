@@ -15,7 +15,6 @@ for i in range(1,int(1e6+1)):
                 div_sum += div
                 if div != 1:
                     div_sum += num/div
-        # This isn't strong enough, need to detect any loop (set)
         if div_sum == num:
             valid = False
             break

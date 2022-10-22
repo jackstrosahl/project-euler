@@ -1,29 +1,34 @@
-from itertools import combinations, combinations_with_replacement,permutations
+from itertools import combinations, product,permutations
 from operator import add, sub, mul, truediv as div
 
 ops = (add,sub,mul,div)
 
-def get_targets(digits,ops,lhs=None):
-    # print(digits,ops,lhs)
-    if len(digits) == 0:
-        return [lhs]
-    rhs = digits[0]
-    digits = digits[1:]
-    if lhs==None:
-        return get_targets(digits,ops,rhs)
-    op = ops[0]
-    ops = ops[1:]
+
+"""
+(2*(3-4))*5 = -10 
+2*((3-4)*5) = -10 
+"""
+def get_targets(digits,ops):
+    simple = ops[0](digits[0],digits[1])
+    if len(digits) == 2:
+        assert(len(ops) == 1)
+        return [simple]
+    assert len(digits) > 2
     out = []
-    for orhs in get_targets(digits,ops,rhs):
+    for rhs in get_targets(digits[1:],ops[1:]):
         try:
-            out.append(op(lhs,orhs))
+            out.append(ops[0](digits[0],rhs))
         except ZeroDivisionError:
             pass
-    if len(ops) > 0: 
+    for lhs in get_targets(digits[:-1],ops[:-1]):
         try:
-            out.extend(get_targets(digits,ops,op(lhs,rhs)))
+            out.append(ops[-1](lhs,digits[-1]))
         except ZeroDivisionError:
             pass
+    try:
+        out.extend(get_targets([simple,*digits[2:]],ops[1:]))
+    except ZeroDivisionError:
+        pass
     return out
     
 
@@ -33,8 +38,8 @@ for digits in combinations(range(1,10),4):
 for digits in ((1,2,3,4),):
     targets = set()
     for digorder in permutations(digits,4):
-        for oporder in combinations_with_replacement(ops,3):
-            targets.update(filter(lambda x: x % 1 == 0 and x > 0, get_targets(digorder,oporder)))
+        for oporder in product(ops,repeat=3):
+            targets.update(filter(lambda x: x%1 ==0 and x > 0, get_targets(digorder,oporder)))
     print(len(targets), sorted(targets))
 
-print(get_targets((1,2,3,4),(add,mul,sub)))
+print(get_targets((2,3,4,5),(mul,sub,mul)))

@@ -18,7 +18,7 @@ def get_targets(digits,ops,lhs=None):
             out.append(op(lhs,orhs))
         except ZeroDivisionError:
             pass
-    if len(ops) > 0: 
+    if len(ops) > 0:
         try:
             out.extend(get_targets(digits,ops,op(lhs,rhs)))
         except ZeroDivisionError:

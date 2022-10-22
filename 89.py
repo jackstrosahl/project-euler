@@ -45,8 +45,4 @@ def roman_value(s: str) -> int:
         i += 1
     return out
 
-ans = 0
-for roman in romans:
-    ans += len(roman) - len(generate_roman(roman_value(roman)))
-
-print(ans)
+print(sum(len(roman) - len(generate_roman(roman_value(roman))) for roman in romans))

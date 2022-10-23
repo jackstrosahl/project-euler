@@ -18,22 +18,32 @@ def get_ps_set(nums,tsum,tprod):
         return nums
 
     assert cur_sum < tsum or cur_prod < tprod, (nums,tsum,tprod)
+
+    val = min(nums)
+    new_nums = HCounter(nums)
+    assert new_nums[val] > 0
+    new_nums[val] -= 1
+    if new_nums[val] == 0:
+        del new_nums[val]
+    if len(new_nums) > 0 and tprod % val == 0 and counter_sum(new_nums) <= tsum and counter_product(new_nums) <= tprod:
+        res = get_ps_set(new_nums,tsum-val,tprod/val)
+        if res:
+            res[val] += 1
+            return res
+
     for val in sorted(nums):
         new_nums = HCounter(nums)
-        assert new_nums[val] > 0
         new_nums[val] -= 1
         if new_nums[val] == 0:
             del new_nums[val]
-        if len(new_nums) > 0 and tprod % val == 0 and counter_sum(new_nums) <= tsum and counter_product(new_nums) <= tprod:
-            res = get_ps_set(new_nums,tsum-val,tprod/val)
-            if res:
-                res[val] += 1
-                return res
         new_nums[val+1] += 1
         if counter_sum(new_nums) <= tsum and counter_product(new_nums) <= tprod:
             res = get_ps_set(new_nums,tsum,tprod)
             if res:
                 return res
+    
+    
+    
     return None
 
 def counter_product(nums):

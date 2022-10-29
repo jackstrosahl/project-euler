@@ -1,3 +1,4 @@
+import chunk
 from collections import Counter
 from functools import reduce
 from multiprocessing import Pool
@@ -10,6 +11,8 @@ class HCounter(Counter):
     def __eq__(self, other):
         return self.__key() == other.__key()
 
+
+
 """
 111
     112
@@ -20,14 +23,29 @@ class HCounter(Counter):
             123
             114
 """
+
 def get_ps_set(k):
     s = []
     visited = set()
+
+    def adjacent_nums(nums):
+        for val in sorted(nums):
+            assert nums[val] >= 0
+            new_nums = HCounter(nums)
+            new_nums[val] -= 1
+            if new_nums[val] == 0:
+                del new_nums[val]
+            new_nums[val+1] += 1
+            if new_nums in visited:
+                continue
+            yield new_nums
+
     nums = HCounter({1:k})
-    s.append(nums)
+    s.append(adjacent_nums(nums))
     while len(s) > 0:
-        nums = s.pop()
-        if nums in visited:
+        nums = next(s[-1],None)
+        if nums is None:
+            s.pop()
             continue
         visited.add(nums)
         diff = counter_sum(nums) - counter_product(nums)
@@ -35,14 +53,7 @@ def get_ps_set(k):
             return nums
         elif diff < 0:
             continue
-        for val in sorted(nums, reverse=True):
-            assert nums[val] >= 0
-            new_nums = HCounter(nums)
-            new_nums[val] -= 1
-            if new_nums[val] == 0:
-                del new_nums[val]
-            new_nums[val+1] += 1
-            s.append(new_nums)
+        s.append(adjacent_nums(nums))
 
     return None
 
@@ -59,8 +70,8 @@ def get_psn(k):
     return counter_sum(nums)
 
 with Pool() as pool:
-    res = set(map(get_psn, range(2,12001)))
+    res = set(pool.map(get_psn, range(2,12001),chunksize=100))
 
-print(res)
+print(sorted(res))
 
 print(sum(res))

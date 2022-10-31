@@ -1,7 +1,8 @@
-import chunk
-from collections import Counter
+from collections import Counter, defaultdict
+from math import inf
 from functools import reduce
 from multiprocessing import Pool
+from heapdict import heapdict
 
 class HCounter(Counter):
     def __key(self):
@@ -12,6 +13,8 @@ class HCounter(Counter):
         return self.__key() == other.__key()
 
 
+def sum_prod_diff(nums):
+    return counter_sum(nums) - counter_product(nums)
 
 """
 111
@@ -23,10 +26,11 @@ class HCounter(Counter):
             123
             114
 """
-
 def get_ps_set(k):
-    s = []
-    visited = set()
+    q = heapdict()
+    dist = defaultdict(lambda: inf)
+    f_score = defaultdict(lambda: inf)
+    prev = defaultdict(lambda: None)
 
     def adjacent_nums(nums):
         for val in sorted(nums):
@@ -36,24 +40,26 @@ def get_ps_set(k):
             if new_nums[val] == 0:
                 del new_nums[val]
             new_nums[val+1] += 1
-            if new_nums in visited:
-                continue
             yield new_nums
 
     nums = HCounter({1:k})
-    s.append(adjacent_nums(nums))
-    while len(s) > 0:
-        nums = next(s[-1],None)
-        if nums is None:
-            s.pop()
-            continue
-        visited.add(nums)
-        diff = counter_sum(nums) - counter_product(nums)
-        if diff == 0:
+    q[nums] = 0
+    dist[nums] = 0
+    f_score[nums] = sum_prod_diff(nums)
+    while len(q) > 0:
+        nums = q.popitem()[0]
+        # print(list(nums.elements()))
+        if sum_prod_diff(nums) == 0:
             return nums
-        elif diff < 0:
-            continue
-        s.append(adjacent_nums(nums))
+        for adjacent in adjacent_nums(nums):
+            diff = abs(sum_prod_diff(adjacent))
+            alt = dist[nums] + 1
+            if alt < dist[adjacent]:
+                dist[adjacent] = alt
+                f = alt + diff
+                f_score[adjacent] = f
+                q[adjacent] = f
+                prev[adjacent] = nums
 
     return None
 
@@ -71,6 +77,8 @@ def get_psn(k):
 
 with Pool() as pool:
     res = set(pool.map(get_psn, range(2,12001),chunksize=100))
+
+# res = set(map(get_psn, range(2,13)))
 
 print(sorted(res))
 

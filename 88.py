@@ -29,37 +29,27 @@ def sum_prod_diff(nums):
 def get_ps_set(k):
     q = heapdict()
     dist = defaultdict(lambda: inf)
-    f_score = defaultdict(lambda: inf)
-    prev = defaultdict(lambda: None)
-
-    def adjacent_nums(nums):
-        for val in sorted(nums):
-            assert nums[val] >= 0
-            new_nums = HCounter(nums)
-            new_nums[val] -= 1
-            if new_nums[val] == 0:
-                del new_nums[val]
-            new_nums[val+1] += 1
-            yield new_nums
 
     nums = HCounter({1:k})
     q[nums] = 0
     dist[nums] = 0
-    f_score[nums] = sum_prod_diff(nums)
     while len(q) > 0:
         nums = q.popitem()[0]
         # print(list(nums.elements()))
-        if sum_prod_diff(nums) == 0:
+        nums_prod = counter_product(nums)
+        nums_sum = counter_sum(nums)
+        if nums_sum - nums_prod == 0:
             return nums
-        for adjacent in adjacent_nums(nums):
-            diff = abs(sum_prod_diff(adjacent))
-            alt = dist[nums] + 1
+        for val in sorted(nums):
+            adjacent = HCounter(nums)
+            adjacent[val] -= 1
+            if adjacent[val] == 0:
+                del adjacent[val]
+            adjacent[val+1] += 1
+            alt = dist[nums] + ((nums_prod/val)*(val+1)) - nums_prod
             if alt < dist[adjacent]:
                 dist[adjacent] = alt
-                f = alt + diff
-                f_score[adjacent] = f
-                q[adjacent] = f
-                prev[adjacent] = nums
+                q[adjacent] = alt
 
     return None
 
@@ -75,11 +65,12 @@ def get_psn(k):
     nums = get_ps_set(k)
     return counter_sum(nums)
 
-with Pool() as pool:
-    res = set(pool.map(get_psn, range(2,12001),chunksize=100))
+if __name__ == "__main__":
+    with Pool() as pool:
+        res = set(pool.map(get_psn, range(2,12001),chunksize=100))
 
-# res = set(map(get_psn, range(2,13)))
+    # res = set(map(get_psn, range(2,100)))
 
-print(sorted(res))
+    print(sorted(res))
 
-print(sum(res))
+    print(sum(res))
